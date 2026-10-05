@@ -21,7 +21,13 @@ no queues, no tracking pixels.
    import { sendEmail } from './lib/email/index.js';
    await sendEmail('welcome', { to: user.email, props: { name: user.name, appUrl: 'https://app.example.com' } });
    ```
-3. With `@core/auth`: send `welcome` after the first login (when the user was just created).
+3. With `@core/auth` (≥ 1.1.0): send `welcome` from its `onLogin` hook when `isNewUser` is true:
+   ```ts
+   app.route('/auth', authRoutes({
+     onLogin: ({ user, isNewUser }) =>
+       isNewUser && user.email ? sendEmail('welcome', { to: user.email, props: { name: user.name, appUrl: process.env.APP_URL ?? '' } }).then(() => undefined) : undefined,
+   }));
+   ```
 4. Verify: run the app without `RESEND_API_KEY` and check the console output.
 
 ## Conventions
