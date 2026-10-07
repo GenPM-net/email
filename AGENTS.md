@@ -14,11 +14,12 @@ no queues, no tracking pixels.
 ## Integration
 1. Env: `EMAIL_FROM` (`"App <hello@yourdomain.com>"`) and `RESEND_API_KEY` (verify the domain in Resend first).
    Without `RESEND_API_KEY`, outside production, emails are printed to the console.
+   Optional `APP_NAME`: brand name shown in the email layout (default `App`).
    `@types/react` is only needed at build time: move it to devDependencies if GenPM added it to dependencies.
    SMTP instead: `EMAIL_PROVIDER=smtp`, `SMTP_URL=smtps://user:pass@host:465` and install `nodemailer`.
 2. Send from server code only:
    ```ts
-   import { sendEmail } from './lib/email/index.js';
+   import { sendEmail } from './lib/email/index.ts';
    await sendEmail('welcome', { to: user.email, props: { name: user.name, appUrl: 'https://app.example.com' } });
    ```
 3. With `@core/auth` (≥ 1.1.0): send `welcome` from its `onLogin` hook when `isNewUser` is true:
@@ -34,7 +35,7 @@ no queues, no tracking pixels.
 - New template: create `templates/<name>.ts` exporting `{ subject(props), render(props) }` built with
   `createElement as h` (no JSX, so it works with any `jsxImportSource`), then add it to `templates` and
   `TemplateProps` in `send.ts`. TypeScript then enforces its props everywhere.
-- Amounts in minor units (cents); links absolute (`https://…`).
+- Amounts in the currency minor unit (cents; whole yen for JPY; 3 decimals for KWD); links absolute (`https://…`).
 - Keep `sendEmail` calls out of request hot paths when possible (after the response, or in a job).
 
 ## Don't
