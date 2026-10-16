@@ -22,6 +22,39 @@ Transactional email with typed templates: `sendEmail('welcome', { to, props })`.
 (optional, via `nodemailer`) and a console provider for development. Templates use React Email. No marketing lists,
 no queues, no tracking pixels.
 
+## Setup
+
+After `genpm add`, follow these steps (your AI agent finds the same steps in `src/lib/email/AGENTS.md` and can do them for you):
+
+1. Env: `EMAIL_FROM` (`"App <hello@yourdomain.com>"`) and `RESEND_API_KEY` (verify the domain in Resend first).
+   Without `RESEND_API_KEY`, outside production, emails are printed to the console. In production (`next start`) that
+   fallback throws so mail is never lost silently; set `EMAIL_PROVIDER=console` to print them there too (local tests).
+   Optional `APP_NAME`: brand name shown in the email layout (default `App`).
+   `@types/react` is only needed at build time: move it to devDependencies if GenPM added it to dependencies.
+   SMTP instead: `EMAIL_PROVIDER=smtp`, `SMTP_URL=smtps://user:pass@host:465` and install `nodemailer`.
+2. Send from server code only:
+   ```ts
+   import { sendEmail } from './lib/email/index.ts';
+   await sendEmail('welcome', { to: user.email, props: { name: user.name, appUrl: 'https://app.example.com' } });
+   ```
+3. With `@core/auth` (≥ 1.1.0): send `welcome` from its `onLogin` hook when `isNewUser` is true:
+   ```ts
+   app.route('/auth', authRoutes({
+     onLogin: ({ user, isNewUser }) =>
+       isNewUser && user.email ? sendEmail('welcome', { to: user.email, props: { name: user.name, appUrl: process.env.APP_URL ?? '' } }).then(() => undefined) : undefined,
+   }));
+   ```
+4. Verify: run the app without `RESEND_API_KEY` and check the console output.
+
+## What's inside
+
+Paths are relative to `src/lib/email`.
+
+- `index.ts` — public API: `sendEmail`, `renderEmail`, `setEmailProvider`, provider factories, `TemplateProps`.
+- `send.ts` — the template registry (`templates`) and `sendEmail`.
+- `templates/*.ts` — `welcome`, `magicLink`, `receipt`, plus the shared `layout.ts`.
+- `providers.ts` — `EmailProvider` interface and implementations.
+
 ## At a glance
 
 - **npm dependencies** (proposed, never installed without asking): `resend`, `@react-email/components`, `@react-email/render`, `react`, `@types/react`
